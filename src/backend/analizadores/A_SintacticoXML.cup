@@ -1,0 +1,309 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+package backend.analizadores;
+import backend.objetos.*;
+import java_cup.runtime.Symbol;
+import java.util.ArrayList;
+
+//------> Codigo para el parser,variables, metodos
+parser code
+{:
+    public ManejadorCliente manejador;
+    
+    public Analisis_Sintactico(Analizador_Lexico_XML lex, ManejadorCliente manejador) { 
+            super(lex);
+            this.manejador=manejador;
+    }
+
+    public String resultado="";
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+    public void syntax_error(Symbol s)
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        
+        System.out.println("¡ Error Sintactico Recuperado !");
+        System.out.println("\t\tLexema: "+lexema);
+        System.out.println("\t\tFila: "+fila);
+        System.out.println("\t\tColumna: "+columna);      
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right +1;
+        int columna = s.left +1;
+        
+        System.out.println("¡ Error Sintactico, Modo Panico ! ");
+        System.out.println("\t\tLexema: "+lexema);
+        System.out.println("\t\tFila: "+fila);
+        System.out.println("\t\tColumna: "+columna);
+
+        ErrorJ errorEcontrado = new ErrorJ(lexema, "Error sintactico", fila, columna);
+        manejador.capturarErrores(errorEcontrado);
+    }
+:}
+
+//------> Codigo para las acciones gramaticales
+action code
+{:
+:}
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+//------> Declaracion de terminales 
+terminal String Identificador, Etiqueta, Id, TextColor, Accion, DatoEntreComillas, Texto, Ancho, Color, TituloComponente,
+                          Acciones, Atributo, Atributos, Nombre, Igual, MenorQue, Fecha, URL, Altura, Origen, Derecha, Centrar, ParrafoComponente,
+                          Diagonal, MayorQue, Etiquetas, Valor, Parametro, Parametros, ValorParametro, AtributoEtiquetas, ImagenComponente,
+                          NuevoSitioWeb, UsuarioCreacion, FechaCreacion, FechaModificacion, ModificarComponente, Izquierda, Alineacion, 
+                          UsuarioModificacion, BorrarSitioWeb, NuevaPagina, BorrarPagina, BorrarComponente, Justificar, MenuComponente,
+                          AgregarComponente, ModificarPagina, Titulo, Pagina, Sitio, Padre, Clase, Entero, VideoComponente, ErrorLexico; 
+
+
+//------> Declaracion de no terminales
+non terminal String GENESIS, estructuraNuevaPagina, estructuraNuevoSitioWeb, estructuraBorrarSitioWeb,
+                     estructuraBorrarPagina, estructuraBorrarComponente, estructuraAgregarComponente, 
+                     MX3, XN1, XS, XEs, XP1, XP2, XE1, XE2, M51, M41, M61, NSW1, AGC1, estructuraModificarPagina,
+                     M1, M3, M4, M5, BSW1, BSW2, BP1, BP2, BC1, XRS, BC2, AEAS, AEAS2, AEAS3, AEAS4, 
+                    estructuraModificarComponente, GAEAS, GAEAS2, GAEAS3, GAEAS4;
+
+//------> Precedencia de menor a mayor 
+//precedence left MenorQue;
+
+start with GENESIS;
+
+/*--------------- 3ra Area: Reglas Semanticas -----------------------*/
+GENESIS::= M1:a {: System.out.println(" -------------- Lectura de documento XML terminada.  -------------- "); :};
+
+
+M1::=  MenorQue Acciones MayorQue M3 MenorQue Diagonal Acciones MayorQue
+         |  MX3  
+;
+
+M3::= MX3
+        | M3 MX3
+;
+
+MX3::= estructuraNuevaPagina 
+        | estructuraNuevoSitioWeb 
+        | estructuraBorrarSitioWeb 
+        | estructuraBorrarPagina 
+        | estructuraBorrarComponente 
+        | estructuraAgregarComponente 
+        | estructuraModificarPagina 
+        | estructuraModificarComponente 
+
+;
+
+//-------------------------------------------------------------------------------------------- Estructura Nuevo Sitio Web TERMINADA
+
+estructuraNuevoSitioWeb::= MenorQue Accion Nombre Igual NuevoSitioWeb {: parser.manejador.inicializarObligatoriosNSW(); :} MayorQue NSW1 MenorQue Diagonal Accion MayorQue
+;
+
+NSW1::= MenorQue Parametros MayorQue 
+                        M5
+                MenorQue Diagonal Parametros MayorQue
+;
+
+M5::= MenorQue Parametro Nombre Igual M4  
+            MenorQue Diagonal Parametro MayorQue 
+            | M5 MenorQue Parametro Nombre Igual M4 
+            MenorQue Diagonal Parametro MayorQue 
+;
+
+M4::= Id MayorQue Identificador {: parser.manejador.enviarObligatorioNSW("ID"); :}
+        | UsuarioCreacion MayorQue Identificador
+        | FechaCreacion MayorQue Fecha
+        | FechaModificacion MayorQue Fecha
+        | UsuarioModificacion MayorQue Identificador
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Borrar Sitio Web TERMINADA
+
+estructuraBorrarSitioWeb::= MenorQue Accion Nombre Igual BorrarSitioWeb MayorQue BSW1 MenorQue Diagonal Accion MayorQue
+;
+
+BSW1::= MenorQue Parametros MayorQue 
+                        BSW2
+                MenorQue Diagonal Parametros MayorQue
+;
+
+BSW2::= MenorQue Parametro Nombre Igual Id MayorQue Identificador
+            MenorQue Diagonal Parametro MayorQue 
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Borrar Pagina TERMINADA
+
+estructuraBorrarPagina::= MenorQue Accion Nombre Igual BorrarPagina MayorQue BP1 MenorQue Diagonal Accion MayorQue
+;
+
+BP1::= MenorQue Parametros MayorQue 
+                        BP2
+                MenorQue Diagonal Parametros MayorQue
+;
+
+BP2::= MenorQue Parametro Nombre Igual Id MayorQue Identificador
+            MenorQue Diagonal Parametro MayorQue 
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Nueva Pagina TERMINADA
+
+
+estructuraNuevaPagina ::=  MenorQue Accion Nombre Igual NuevaPagina  MayorQue  XS XEs MenorQue Diagonal Accion MayorQue
+              |  MenorQue Accion Nombre Igual NuevaPagina MayorQue  XS MenorQue Diagonal Accion MayorQue
+;
+
+XS ::= {: parser.manejador.inicializarObligatoriosNPW(); :} MenorQue Parametros MayorQue XP1 MenorQue Diagonal Parametros MayorQue
+;
+
+XP1 ::= XP2
+    | XP1 XP2
+;
+
+XP2 ::= MenorQue Parametro Nombre Igual XN1 MenorQue Diagonal Parametro MayorQue
+;
+
+// ----------------------------------------------------------------------------------------------------------------------- Estructura de Etiquetas
+
+XEs ::= MenorQue Etiquetas MayorQue XE1 MenorQue Diagonal Etiquetas MayorQue
+;
+
+XE1 ::= XE2
+    | XE1 XE2
+;
+
+XE2 ::= MenorQue Etiqueta Valor Igual DatoEntreComillas Diagonal MayorQue
+;
+
+// ---------------------------------------------------------------------------------------------------------------------- Campos 
+
+XN1 ::= Id MayorQue Identificador {: parser.manejador.enviarObligatorioNPW("ID"); :}
+    | Sitio MayorQue Identificador {: parser.manejador.enviarObligatorioNPW("SITIO"); :}
+    | Padre MayorQue Identificador {: parser.manejador.enviarObligatorioNPW("PADRE"); :}
+    | Titulo MayorQue ValorParametro
+    | UsuarioCreacion MayorQue Identificador
+    | FechaCreacion MayorQue Fecha
+    | FechaModificacion MayorQue Fecha
+    | UsuarioModificacion MayorQue Identificador
+;
+
+
+//-------------------------------------------------------------------------------------------------- Estructura de Atributos ------ Con Varios Atributos TERMINADA
+
+AEAS::= MenorQue Atributos MayorQue
+                    AEAS2
+                MenorQue Diagonal Atributos MayorQue
+;
+
+AEAS2::= MenorQue Atributo Nombre Igual AEAS3  MenorQue Diagonal Atributo MayorQue
+            | AEAS2 MenorQue Atributo Nombre Igual AEAS3  MenorQue Diagonal Atributo MayorQue
+;
+
+AEAS3::= Texto MayorQue ValorParametro
+            | Alineacion MayorQue AEAS4
+            | Color MayorQue TextColor
+            | Origen MayorQue URL
+            | Altura MayorQue Entero
+            | Ancho MayorQue Entero
+            | Padre MayorQue Identificador
+            | AtributoEtiquetas MayorQue 
+;
+
+AEAS4::= Centrar 
+            | Izquierda
+            | Derecha
+            | Justificar
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Borrar Componente de Paginas Web TERMINADA
+
+estructuraBorrarComponente::= MenorQue Accion Nombre Igual BorrarComponente MayorQue BC1 MenorQue Diagonal Accion MayorQue
+;
+
+BC1::= MenorQue Parametros MayorQue 
+                        BC2
+                MenorQue Diagonal Parametros MayorQue
+;
+
+BC2::= MenorQue Parametro Nombre Igual Id MayorQue Identificador
+            MenorQue Diagonal Parametro MayorQue 
+            MenorQue Parametro Nombre Igual Pagina MayorQue Identificador
+            MenorQue Diagonal Parametro MayorQue 
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Agregar Componente
+
+estructuraAgregarComponente::= MenorQue Accion Nombre Igual AgregarComponente MayorQue AGC1 MenorQue Diagonal Accion MayorQue
+;
+
+AGC1::= MenorQue Parametros MayorQue 
+                        M51
+                MenorQue Diagonal Parametros MayorQue
+                GAEAS
+;
+M51::= MenorQue Parametro Nombre Igual M41  
+            MenorQue Diagonal Parametro MayorQue 
+            | M51 MenorQue Parametro Nombre Igual M41 
+            MenorQue Diagonal Parametro MayorQue 
+;
+
+M41::= Id MayorQue Identificador
+        | Pagina MayorQue Identificador
+        | Clase MayorQue M61
+;
+
+M61::= TituloComponente
+        | ImagenComponente
+        | ParrafoComponente
+        | VideoComponente
+        | MenuComponente
+;
+
+GAEAS::= MenorQue Atributos MayorQue
+                    GAEAS2
+                MenorQue Diagonal Atributos MayorQue
+;
+
+GAEAS2::= MenorQue Atributo Nombre Igual GAEAS3  MenorQue Diagonal Atributo MayorQue
+            | GAEAS2 MenorQue Atributo Nombre Igual GAEAS3  MenorQue Diagonal Atributo MayorQue
+;
+
+GAEAS3::= Texto MayorQue ValorParametro
+            | Alineacion MayorQue GAEAS4
+            | Color MayorQue TextColor
+            | Origen MayorQue URL
+            | Altura MayorQue Entero
+            | Ancho MayorQue Entero
+            | Padre MayorQue Identificador
+            | AtributoEtiquetas MayorQue 
+;
+
+GAEAS4::= Centrar 
+            | Izquierda
+            | Derecha
+            | Justificar
+;
+
+
+//--------------------------------------------------------------------------------------------------- Estructura Modificar Componente
+
+estructuraModificarComponente::= MenorQue Accion Nombre Igual ModificarComponente MayorQue AGC1 MenorQue Diagonal Accion MayorQue
+;
+
+//--------------------------------------------------------------------------------------------------- Estructura Modificar Pagina
+
+estructuraModificarPagina ::=  MenorQue Accion Nombre Igual ModificarPagina MayorQue XRS XEs MenorQue Diagonal Accion MayorQue
+              |  MenorQue Accion Nombre Igual ModificarPagina MayorQue XRS MenorQue Diagonal Accion MayorQue
+;
+
+XRS ::= MenorQue Parametros MayorQue 
+                    MenorQue Parametro Nombre Igual Id MayorQue
+                        Identificador
+                    MenorQue Diagonal Parametro  MayorQue  
+                    MenorQue Parametro Nombre Igual Titulo MayorQue
+                        ValorParametro
+                    MenorQue Diagonal Parametro MayorQue
+             MenorQue Diagonal Parametros MayorQue
+;

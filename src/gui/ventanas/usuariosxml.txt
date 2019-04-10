@@ -1,0 +1,7 @@
+<usuarios>
+	<usuario>
+	 <id="_jonyChiroy"/>
+	 <contraseña="micontraseña"/>
+	</usuario>
+<usuarios>
+	

@@ -1,0 +1,91 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+package backend.analizadores;
+import backend.objetos.*;
+import java_cup.runtime.Symbol;
+import java.util.ArrayList;
+
+//------> Codigo para el parser,variables, metodos
+parser code
+{:
+    public ManejadorUsuarios manejador;
+    
+    public Analisis_SintacticoUsuarios(Analizador_Lexico_Usuarios lex, ManejadorUsuarios manejador) { 
+            super(lex);
+            this.manejador=manejador;
+    }
+
+    public String resultado="";
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+    public void syntax_error(Symbol s)
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+        
+        System.out.println("¡ Error Sintactico Recuperado !");
+        System.out.println("\t\tLexema: "+lexema);
+        System.out.println("\t\tFila: "+fila);
+        System.out.println("\t\tColumna: "+columna);      
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception
+    {        
+        String lexema = s.value.toString();
+        int fila = s.right +1;
+        int columna = s.left +1;
+        
+        System.out.println("¡ Error Sintactico, Modo Panico ! ");
+        System.out.println("\t\tLexema: "+lexema);
+        System.out.println("\t\tFila: "+fila);
+        System.out.println("\t\tColumna: "+columna);
+
+        ErrorJ errorEcontrado = new ErrorJ(lexema, "Error sintactico", fila, columna);
+        manejador.capturarErrores(errorEcontrado);
+    }
+:}
+
+//------> Codigo para las acciones gramaticales
+action code
+{:
+:}
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+//------> Declaracion de terminales 
+terminal String Usuario, Usuarios, Id, Contraseña, Igual, MenorQue, MayorQue, Diagonal, DatoEntreComillas; 
+
+
+//------> Declaracion de no terminales
+non terminal String GENESIS, MX3, M3, M1, info, estructuraNuevoUsuario;
+
+//------> Precedencia de menor a mayor 
+//precedence left MenorQue;
+
+start with GENESIS;
+
+/*--------------- 3ra Area: Reglas Semanticas -----------------------*/
+GENESIS::= M1:a {: System.out.println(" -------------- Lectura de documento XML terminada.  -------------- "); :};
+
+
+M1::=  MenorQue Usuarios MayorQue M3 MenorQue Diagonal Usuarios MayorQue
+         |  MX3  
+;
+
+M3::= MX3
+        | M3 MX3
+;
+
+MX3::= estructuraNuevoUsuario
+;
+
+estructuraNuevoUsuario::= MenorQue Usuario MayorQue
+                                                MenorQue Id Igual info:a Diagonal MayorQue
+                                                MenorQue Contraseña Igual info:b Diagonal MayorQue
+                                                MenorQue Diagonal Usuario MayorQue 
+                                        {: parser.manejador.capturarUsuario(a, b); :}
+;
+
+info::= DatoEntreComillas:a {: RESULT = a; :}
+;

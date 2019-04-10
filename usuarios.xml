@@ -1,0 +1,19 @@
+<usuarios>
+	<usuario>
+	 <id="_jonyChiroy"/>
+	 <contraseña="micontraseña1"/>
+	</usuario>
+	<usuario>
+	 <id="_jonyChiroy2"/>
+	 <contraseña="micontraseña2"/>
+	</usuario>
+	<usuario>
+	 <id="-admin"/>
+	 <contraseña="admin"/>
+	</usuario>
+	<usuario>
+	 <id="_jonyChiroy2"/>
+	 <contraseña="micontraseña3"/>
+	</usuario>
+</usuarios>
+	
